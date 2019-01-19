@@ -1,5 +1,7 @@
 import org.eclipse.paho.client.mqttv3.*;
 
+import static java.lang.Thread.sleep;
+
 public class SimpleMqttClient implements MqttCallback {
 
     MqttClient myClient;
@@ -8,12 +10,12 @@ public class SimpleMqttClient implements MqttCallback {
     static final String BROKER_URL = "tcp://mpd.lan:1883";
     static final String M2MIO_DOMAIN = "laumio";
     static final String M2MIO_STUFF = "Laumio_D454DB";
-    static final String M2MIO_THING = "animate_rainbow";
+    static final String M2MIO_THING = "json";
     static final String M2MIO_USERNAME = "";
     static final String M2MIO_PASSWORD_MD5 = "";
 
     // the following two flags control whether this example is a publisher, a subscriber or both
-    static final Boolean subscriber = false;
+    static final Boolean subscriber = true;
     static final Boolean publisher = true;
 
     /**
@@ -76,6 +78,65 @@ public class SimpleMqttClient implements MqttCallback {
         smc.runClient();
     }
 
+
+    /**
+     * lightOff
+     * The main functionnality is to light off a lamp
+     */
+
+    public void lightOff(String lampe){
+        String myTopic = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + M2MIO_THING;
+        String myTopic2 = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'fill\', \'rgb\' :[0,0,0]}";
+
+        int pubQoS = 0;
+        MqttMessage message = new MqttMessage(myMessage.getBytes());
+        message.setQos(pubQoS);
+        message.setRetained(false);
+
+        MqttTopic topic = myClient.getTopic(myTopic2);
+
+        // Publish the message
+        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS);
+        MqttDeliveryToken token = null;
+        try {
+            // publish message to broker
+            token = topic.publish(message);
+            // Wait until the message has been delivered to the broker
+            token.waitForCompletion();
+            sleep(100);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void lightUp(String lampe){
+        String myTopic = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + M2MIO_THING;
+        String myTopic2 = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'fill\', \'rgb\' :[123,123,123]}";
+
+        int pubQoS = 0;
+        MqttMessage message = new MqttMessage(myMessage.getBytes());
+        message.setQos(pubQoS);
+        message.setRetained(false);
+
+        MqttTopic topic = myClient.getTopic(myTopic2);
+
+        // Publish the message
+        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS);
+        MqttDeliveryToken token = null;
+        try {
+            // publish message to broker
+            token = topic.publish(message);
+            // Wait until the message has been delivered to the broker
+            token.waitForCompletion();
+            sleep(100);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      *
      * runClient
@@ -107,7 +168,9 @@ public class SimpleMqttClient implements MqttCallback {
 
         // setup topic
         // topics on m2m.io are in the form <domain>/<stuff>/<thing>
-        String myTopic = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + M2MIO_THING;
+
+        /*String myTopic = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + M2MIO_THING;
+        String myTopic2 = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + "fill 0 0 255";
         MqttTopic topic = myClient.getTopic(myTopic);
 
         // subscribe to topic if subscriber
@@ -118,37 +181,25 @@ public class SimpleMqttClient implements MqttCallback {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         // publish messages if publisher
         if (publisher) {
-            for (int i=1; i<=10; i++) {
-                String pubMsg = "";
-                int pubQoS = 0;
-                MqttMessage message = new MqttMessage(myTopic.getBytes());
-                message.setQos(pubQoS);
-                message.setRetained(false);
-
-                // Publish the message
-                System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS);
-                MqttDeliveryToken token = null;
-                try {
-                    // publish message to broker
-                    token = topic.publish(message);
-                    // Wait until the message has been delivered to the broker
-                    token.waitForCompletion();
-                    Thread.sleep(100);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            this.lightOff("Laumio_D454DB");
+            try {
+                sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            this.lightUp("Laumio_D454DB");
+
         }
 
         // disconnect
         try {
             // wait to ensure subscribed messages are delivered
             if (subscriber) {
-                Thread.sleep(5000);
+                sleep(5000);
             }
             myClient.disconnect();
         } catch (Exception e) {
