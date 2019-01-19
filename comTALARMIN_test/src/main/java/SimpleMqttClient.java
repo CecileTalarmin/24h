@@ -2,6 +2,7 @@ import org.eclipse.paho.client.mqttv3.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import static java.lang.Thread.sleep;
 
@@ -251,6 +252,26 @@ public class SimpleMqttClient implements MqttCallback {
 
 
     }
+    public void animation(MqttClient myClient, List<String> lampe, List<Integer> action) throws Exception{
+        for(int i=0; i<action.size(); i++) {
+            for(int j=0; j<lampe.size(); j++){
+                switch(action.get(i)){
+                    case 0: this.lightOff(myClient, lampe.get(j));
+                             break;
+                    case 1: this.fill(myClient, lampe.get(j), 255, 0, 0);
+                            break;
+                    case 2: this.fill(myClient, lampe.get(j), 0, 255, 0);
+                            break;
+                    case 3: this.fill(myClient, lampe.get(j), 0, 0,255);
+                            break;
+                    case 4: this.animateRainbow(myClient, lampe.get(j));
+                            break;
+                    case 5: this.lightUp(myClient, lampe.get(j));
+                            break;
+                }
+            }
+        }
+    }
 
 
     /**
@@ -309,10 +330,62 @@ public class SimpleMqttClient implements MqttCallback {
             }
         }*/
 
-        
+        List<String> mesLampes = new ArrayList<String>();
+        mesLampes.add("Laumio_10508F");
+        mesLampes.add("Laumio_104F03");
+        mesLampes.add("Laumio_D454DB");
+
+        List<Integer> actions = new ArrayList<Integer>();
+        Scanner sc = new Scanner(System.in);
+
+        int choix = 0;
+        while (choix != -1)
+        {
+            System.out.println("Veuillez saisir une action à réaliser : ");
+            System.out.println("0 : éteindre la lampe");
+            System.out.println("1 : choisir la couleur rouge");
+            System.out.println("2 : allumer la couleur verte");
+            System.out.println("3 : allumer la couleur bleue");
+            System.out.println("4 : effet arc-en-ciel");
+            System.out.println("5 : allumer la lampe");
+            System.out.println("-1 : fin de l\'animation");
+            String str = sc.nextLine();
+            if(Integer.parseInt(str)!=-1){
+                actions.add(Integer.parseInt(str));
+            }
+        }
 
 
-        this.animation(myClient, "Laumio_D454DB");
+
+        /*actions.add(0);
+        actions.add(1);
+        actions.add(2);
+        actions.add(3);
+        actions.add(4);
+        actions.add(3);
+        actions.add(2);
+        actions.add(1);
+        actions.add(0);*/
+        //mesLampes.add("Laumio_CD0522");
+        //mesLampes.add("Laumio_0FBFBF");
+
+
+        /*Laumio_10805F
+Laumio_0FC168
+Laumio_104A13
+Laumio_107DA8
+Laumio_10508F
+Laumio_1D9486
+Laumio_439BA9*/
+
+        try {
+            this.animation(myClient, mesLampes, actions);
+            //this.animation(myClient, "Laumio_D454DB");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //this.animation(myClient, "Laumio_D454DB");
 
         // disconnect
         try {
