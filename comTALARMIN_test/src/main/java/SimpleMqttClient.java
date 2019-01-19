@@ -66,6 +66,29 @@ public class SimpleMqttClient implements MqttCallback {
         System.out.println("| Topic:" + topic.getName());
         System.out.println("| Message: " + new String(message.getPayload()));
         System.out.println("-------------------------------------------------");
+
+    }
+
+    // publish message
+    public void sendMsg(MqttTopic topic, String message){
+
+        int pubQoS = 0;
+        MqttMessage mqtt_msg = new MqttMessage(message.getBytes());
+        mqtt_msg.setQos(pubQoS);
+        mqtt_msg.setRetained(false);
+
+        // Publish the message
+        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS);
+        MqttDeliveryToken token = null;
+        try {
+            // publish message to broker
+            token = topic.publish(mqtt_msg);
+            // Wait until the message has been delivered to the broker
+            token.waitForCompletion();
+            Thread.sleep(100);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -84,57 +107,20 @@ public class SimpleMqttClient implements MqttCallback {
      * The main functionnality is to light off a lamp
      */
 
-    public void lightOff(String lampe){
-        String myTopic = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + M2MIO_THING;
-        String myTopic2 = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+    public void lightOff(MqttClient client, String lampe){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
         String myMessage = "{\'command\' : \'fill\', \'rgb\' :[0,0,0]}";
-
-        int pubQoS = 0;
-        MqttMessage message = new MqttMessage(myMessage.getBytes());
-        message.setQos(pubQoS);
-        message.setRetained(false);
-
-        MqttTopic topic = myClient.getTopic(myTopic2);
-
+        MqttTopic topic = client.getTopic(str_topic);
         // Publish the message
-        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS);
-        MqttDeliveryToken token = null;
-        try {
-            // publish message to broker
-            token = topic.publish(message);
-            // Wait until the message has been delivered to the broker
-            token.waitForCompletion();
-            sleep(100);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        sendMsg(topic, myMessage);
     }
 
-    public void lightUp(String lampe){
-        String myTopic = M2MIO_DOMAIN + "/" + M2MIO_STUFF + "/" + M2MIO_THING;
-        String myTopic2 = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
-        String myMessage = "{\'command\' : \'fill\', \'rgb\' :[123,123,123]}";
-
-        int pubQoS = 0;
-        MqttMessage message = new MqttMessage(myMessage.getBytes());
-        message.setQos(pubQoS);
-        message.setRetained(false);
-
-        MqttTopic topic = myClient.getTopic(myTopic2);
-
+    public void lightUp(MqttClient client, String lampe, int r, int g, int b){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'fill\', \'rgb\' :["+r+","+g+","+b+"]}";
+        MqttTopic topic = client.getTopic(str_topic);
         // Publish the message
-        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS);
-        MqttDeliveryToken token = null;
-        try {
-            // publish message to broker
-            token = topic.publish(message);
-            // Wait until the message has been delivered to the broker
-            token.waitForCompletion();
-            sleep(100);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendMsg(topic, myMessage);
     }
 
     /**
@@ -183,17 +169,19 @@ public class SimpleMqttClient implements MqttCallback {
             }
         }*/
 
-        // publish messages if publisher
-        if (publisher) {
-            this.lightOff("Laumio_D454DB");
-            try {
-                sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            this.lightUp("Laumio_D454DB");
-
+        lightOff(myClient, "Laumio_D454DB");
+        try {
+            sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        this.lightUp(myClient, "Laumio_D454DB", 123,123,123);
+        try {
+            sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        lightOff(myClient, "Laumio_D454DB");
 
         // disconnect
         try {
