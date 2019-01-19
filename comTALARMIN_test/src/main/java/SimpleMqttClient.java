@@ -1,5 +1,8 @@
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.Thread.sleep;
 
 public class SimpleMqttClient implements MqttCallback {
@@ -91,16 +94,6 @@ public class SimpleMqttClient implements MqttCallback {
         }
     }
 
-    /**
-     *
-     * MAIN
-     *
-     */
-    public static void main(String[] args) {
-        SimpleMqttClient smc = new SimpleMqttClient();
-        smc.runClient();
-    }
-
 
     /**
      * lightOff
@@ -115,12 +108,159 @@ public class SimpleMqttClient implements MqttCallback {
         sendMsg(topic, myMessage);
     }
 
-    public void lightUp(MqttClient client, String lampe, int r, int g, int b){
+    /**
+     *
+     * fill
+     * The main functionnality is to change the color of the lamp
+     *
+     * @param client
+     * @param lampe
+     * @param r
+     * @param g
+     * @param b
+     */
+
+    public void fill(MqttClient client, String lampe, int r, int g, int b){
         String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
         String myMessage = "{\'command\' : \'fill\', \'rgb\' :["+r+","+g+","+b+"]}";
         MqttTopic topic = client.getTopic(str_topic);
         // Publish the message
         sendMsg(topic, myMessage);
+    }
+
+    /**
+     * lightUp
+     * The main functionnality is to light up a lamp
+     */
+    public void lightUp(MqttClient client, String lampe){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'fill\', \'rgb\' :[123,123,123]}";
+        MqttTopic topic = client.getTopic(str_topic);
+        // Publish the message
+        sendMsg(topic, myMessage);
+    }
+
+    /**
+     * setRing
+     * The main functionnality is to change a ring's color
+     */
+    public void setRing(MqttClient client, String lampe,int idRing, int r, int g, int b){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        if(idRing<0 || idRing>2)
+        {
+            idRing = 0;
+        }
+        String myMessage = "{\'command\' : \'set_ring\', \'led\' : "+idRing +"\'rgb\' :["+r+","+g+","+b+"]}";
+
+        MqttTopic topic = client.getTopic(str_topic);
+        // Publish the message
+        sendMsg(topic, myMessage);
+    }
+
+    /**
+     * colorWipe
+     * The main functionnality is to start a animation of progressive change of color for a defined time
+     */
+    public void colorWipe(MqttClient client, String lampe, int r, int g, int b,int duration){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'set_ring\', \'duration\' : "+duration +"\'rgb\' :["+r+","+g+","+b+"]}";
+        MqttTopic topic = client.getTopic(str_topic);
+        // Publish the message
+        sendMsg(topic, myMessage);
+    }
+
+
+    /**
+     * setPixel
+     * The main functionnality is to set a pixel of a lamp
+     */
+    public void setPixel(MqttClient client, String lampe, int pixelId, int r, int g, int b){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'set_pixel\', \'led\':"+pixelId+",\'rgb\' :["+r+","+g+","+b+"]}";
+        MqttTopic topic = client.getTopic(str_topic);
+        // Publish the message
+        sendMsg(topic, myMessage);
+    }
+
+    /**
+     * setColumn
+     * The main functionnality is to set a ring of a lamp
+     */
+    public void setColumn(MqttClient client, String lampe, int ringId, int r, int g, int b){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'set_column\', \'ring\':"+ringId+",\'rgb\' :["+r+","+g+","+b+"]}";
+        MqttTopic topic = client.getTopic(str_topic);
+        // Publish the message
+        sendMsg(topic, myMessage);
+    }
+
+    /**
+     * animateRainbow
+     * The main functionnality is to set a raimbow animation
+     */
+    public void animateRainbow(MqttClient client, String lampe){
+        String str_topic = M2MIO_DOMAIN + "/" + lampe + "/" + "json";
+        String myMessage = "{\'command\' : \'animate_rainbow\'}";
+        MqttTopic topic = client.getTopic(str_topic);
+        // Publish the message
+        sendMsg(topic, myMessage);
+    }
+
+    public void animation(MqttClient client, String lampe)
+    {
+
+
+        try {
+            this.lightOff(client, lampe);
+            sleep(1000);
+            this.fill(client, lampe, 255, 0,0);
+            sleep(1000);
+            this.fill(client, lampe, 0, 255,0);
+            sleep(1000);
+            this.fill(client, lampe, 0, 0,255);
+            sleep(1000);
+            this.animateRainbow(client, lampe);
+            sleep(1000);
+            this.setRing(client, lampe, 0,255,255, 255);
+            sleep(1000);
+            this.setRing(client, lampe, 1,255,255, 255);
+            sleep(1000);
+            this.setRing(client, lampe, 2,255,255, 255);
+            sleep(1000);
+            this.setColumn(client, lampe, 0, 255, 255, 255);
+            sleep(1000);
+            this.setColumn(client, lampe, 1, 255, 255, 255);
+            sleep(1000);
+            this.setColumn(client, lampe, 2, 255, 255, 255);
+            sleep(1000);
+            this.setColumn(client, lampe, 3, 255, 255, 255);
+            sleep(1000);
+            this.animateRainbow(client, lampe);
+            sleep(1000);
+            this.fill(client, lampe, 255, 0,0);
+            sleep(1000);
+            this.fill(client, lampe, 0, 255,0);
+            sleep(1000);
+            this.fill(client, lampe, 0, 0,255);
+            sleep(1000);
+            this.lightOff(client, lampe);
+            sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+
+    /**
+     *
+     * MAIN
+     *
+     */
+    public static void main(String[] args) {
+        SimpleMqttClient smc = new SimpleMqttClient();
+        smc.runClient();
     }
 
     /**
@@ -169,19 +309,10 @@ public class SimpleMqttClient implements MqttCallback {
             }
         }*/
 
-        lightOff(myClient, "Laumio_D454DB");
-        try {
-            sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        this.lightUp(myClient, "Laumio_D454DB", 123,123,123);
-        try {
-            sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        lightOff(myClient, "Laumio_D454DB");
+        
+
+
+        this.animation(myClient, "Laumio_D454DB");
 
         // disconnect
         try {
